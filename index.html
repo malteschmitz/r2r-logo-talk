@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>R2R Logo Generator</title>
+
+<link rel="stylesheet" href="reveal/reset.css">
+<link rel="stylesheet" href="reveal/reveal.css">
+<link rel="stylesheet" href="reveal/theme/simple.css" id="theme">
+<link rel="stylesheet" href="reveal/highlight/github.css" id="highlight-theme">
+<script src="r2r.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section>
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg"></svg>
+  <script>
+    generate(svg, "r2r");
+    svg.onclick = () => generate(svg, "r2r");
+  </script>
+</section>
+<section>
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg2"></svg>
+  <pre><code class="javascript" data-trim>
+    const len = path.getTotalLength();
+    const point = path.getPointAtLength(len * pos);
+    c.setAttribute("cx", point.x);
+    c.setAttribute("cy", point.y);
+  </code></pre>
+  <script>
+    generate2(svg2, "r2r");
+  </script>
+</section>
+<section>
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg3"></svg>
+  <script>
+    generate3(svg3, "r2r");
+  </script>
+</section>
+<section>
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg4"></svg>
+  <script>
+    generate4(svg4, "r2r");
+  </script>
+  <pre><code class="javascript" data-trim>
+    const outlines = paths.map(p => {
+      const c = p.cloneNode();
+      c.setAttribute("d", c.getAttribute("d").split("z")[0] + "z");
+      return c;
+    });
+  </code></pre>
+</section>
+</div>
+</div>
+
+<script src="reveal/reveal.js"></script>
+<script src="reveal/highlight/highlight.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  plugins: [RevealHighlight]
+});
+</script>
+</body>
+</html>
