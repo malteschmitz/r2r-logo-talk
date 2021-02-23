@@ -7,14 +7,12 @@ const colors = {
 const options = {
   num_points: 100,
   character_distance: 0.8,
-  max_resistor_length: 3,
-  top_tolerance: 0.1,
-  bottom_tolerance: 0.1,
-  right_tolerance: 0.1,
+  top_tolerance: 0.5,
+  bottom_tolerance: 0.5,
+  right_tolerance: 0.5,
   vertical_position: 0.5,
   vertical_tolerance: 0.5,
   resistor_tolerance: 0.5,
-  resistor_small_tolerance: 0.1,
   min_width_for_large_resistor: 1.5,
   icon_scale: 0.15
 };
@@ -91,6 +89,16 @@ function createIcon(p, d) {
   return node;
 }
 
+function createCircle(r, x, y, color) {
+  color ||= colors.pink;
+  const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  circle.setAttribute("fill", color);
+  circle.setAttribute("r", r);
+  circle.setAttribute("cx", x);
+  circle.setAttribute("cy", y);
+  return circle;
+}
+
 function createResistor(a, b) {
   const large = "m20.4-.771c-.695.185-1.45-.188-2.1-.398-.76-.214-1.63-.353-2.33.0965-.488.299-.798.79-1 1.31-.0821-2.02.154-4.05.731-5.98.274-.943-1.16-1.39-1.47-.453-.633 2.01-1.29 4.03-1.92 6.04-.362 1.15-.672 2.36-1.17 3.5-.392-2.93-.0398-5.91.283-8.83.113-.869-1.23-1.05-1.5-.269-.785 2.54-1.6 5.05-2.38 7.59-.308-1.65-.323-3.35-.312-5.02.000751-.715-1.02-1.15-1.41-.451-.541.986-.951 2.03-1.2 3.1-1.67-.0634-3.31-.0994-4.97-.163-.978-.0373-1.04 1.5-.0584 1.53 1.88.0715 3.73.116 5.61.187.238.00906.507-.113.648-.32.159 1.38.453 2.72 1.01 4.01.268.619 1.23.47 1.41-.132l1.15-3.69c.0179 1.62.195 3.21.638 4.79.187.643 1 .78 1.39.238 1.03-1.42 1.52-3.17 2.04-4.85.0542.664.135 1.33.242 2 .0866.506.689.688 1.09.492.673-.292 1.04-.966 1.23-1.62.151-.497.182-1.29.62-1.67.438-.38 1.19-.00756 1.66.143.785.242 1.62.485 2.43.278.962-.228.622-1.72-.341-1.47z";
   const largeWidth = 20;
@@ -129,24 +137,40 @@ function last(array) {
   return array[array.length  - 1];
 }
 
-function randomRightElement(points, tolerance) {
+function rightElements(points, tolerance) {
   const max = Math.max(...points.map(p => p.x));
-  return randomElement(points.filter(p => Math.abs(p.x - max) <= tolerance));
+  return points.filter(p => Math.abs(p.x - max) <= tolerance);
+}
+
+function randomRightElement(points, tolerance) {
+  return randomElement(rightElements(points, tolerance));
+}
+
+function leftElements(points, tolerance) {
+  const min = Math.min(...points.map(p => p.x));
+  return points.filter(p => Math.abs(p.x - min) <= tolerance);
 }
 
 function randomLeftElement(points, tolerance) {
-  const min = Math.min(...points.map(p => p.x));
-  return randomElement(points.filter(p => Math.abs(p.x - min) <= tolerance));
+  return randomElement(leftElements(points, tolerance));
+}
+
+function bottomElements(points, tolerance) {
+  const max = Math.max(...points.map(p => p.y));
+  return points.filter(p => Math.abs(p.y - max) <= tolerance);
 }
 
 function randomBottomElement(points, tolerance) {
-  const max = Math.max(...points.map(p => p.y));
-  return randomElement(points.filter(p => Math.abs(p.y - max) <= tolerance));
+  return randomElement(bottomElements(points, tolerance));
+}
+
+function topElements(points, tolerance) {
+  const min = Math.min(...points.map(p => p.y));
+  return points.filter(p => Math.abs(p.y - min) <= tolerance);
 }
 
 function randomTopElement(points, tolerance) {
-  const min = Math.min(...points.map(p => p.y));
-  return randomElement(points.filter(p => Math.abs(p.y - min) <= tolerance));
+  return randomElement(topElements(points, tolerance));
 }
 
 function verticalRangePoints(points, position, tolerance) {
@@ -165,6 +189,8 @@ function kerning(a, b) {
   };
   return data[a + b] || 0;
 }
+
+
 
 function generate(svg, text) {
   svg.innerHTML = "";
@@ -206,13 +232,7 @@ function generate(svg, text) {
     const rightPoints = points[i + 1];
     let left = randomRightElement(verticalRangePoints(leftPoints, options.vertical_position, options.vertical_tolerance), options.resistor_tolerance);
     let right = randomLeftElement(rightPoints.filter(p => Math.abs(p.y - left.y) <= options.resistor_tolerance), options.resistor_tolerance);
-    if (distance(left, right) < options.max_resistor_length) {
-      background.append(createResistor(left, right));
-    } else {
-      left = randomRightElement(leftPoints, options.resistor_small_tolerance);
-      right = randomLeftElement(rightPoints.filter(p => Math.abs(p.y - left.y) <= options.resistor_tolerance), options.resistor_tolerance);
-      background.append(createResistor(left, right));
-    }
+    background.append(createResistor(left, right));
   });
 
   points.slice(1,-1).forEach(ps => {
@@ -226,6 +246,8 @@ function generate(svg, text) {
   const right = randomRightElement(last(points), options.right_tolerance);
   background.appendChild(createIcon(right, rightPath));
 }
+
+
 
 function generate2(svg, text) {
   svg.innerHTML = "";
@@ -264,9 +286,7 @@ function generate2(svg, text) {
   svg.setAttribute("viewBox", `0 -0.5 ${width} 8`);
 
   const circles = paths.map(p => {
-    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    circle.setAttribute("fill", colors.pink);
-    circle.setAttribute("r", 0.2);
+    const circle = createCircle(0.2, 0, 0);
     svg.appendChild(circle);
     return circle;
   });
@@ -288,6 +308,8 @@ function generate2(svg, text) {
   }
   window.requestAnimationFrame(step);
 }
+
+
 
 function generate3(svg, text) {
   svg.innerHTML = "";
@@ -325,18 +347,15 @@ function generate3(svg, text) {
   const width = dx + last(widths) + 2;
   svg.setAttribute("viewBox", `0 -0.5 ${width} 8`);
 
-  paths.forEach((path, i) => {
-    const points = getPoints(path);
-    points.forEach(p => {
-      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      circle.setAttribute("fill", colors.pink);
-      circle.setAttribute("r", 0.1);
-      circle.setAttribute("cx", p.x + offsets[i]);
-      circle.setAttribute("cy", p.y);
+  points.forEach(ps => {
+    ps.forEach(p => {
+      const circle = createCircle(0.1, p.x, p.y);
       svg.appendChild(circle);
     });
   });
 }
+
+
 
 function generate4(svg, text) {
   svg.innerHTML = "";
@@ -377,15 +396,274 @@ function generate4(svg, text) {
   const width = dx + last(widths) + 2;
   svg.setAttribute("viewBox", `0 -0.5 ${width} 8`);
 
-  outlines.forEach((path, i) => {
-    const points = getPoints(path);
-    points.forEach(p => {
-      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      circle.setAttribute("fill", colors.pink);
-      circle.setAttribute("r", 0.1);
-      circle.setAttribute("cx", p.x + offsets[i]);
-      circle.setAttribute("cy", p.y);
+  points.forEach(ps => {
+    ps.forEach(p => {
+      const circle = createCircle(0.1, p.x, p.y);
       svg.appendChild(circle);
     });
+  });
+}
+
+
+
+function generate5(svg, text) {
+  svg.innerHTML = "";
+  const background = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  svg.appendChild(background);
+
+  const characters = text.toUpperCase().split("").filter(c => alphabet.includes(c));
+
+  const paths = characters.map((c, i) => {
+    const node = createPath(font[alphabet.indexOf(c)]);
+    node.setAttribute("fill", (i % 2 === 0) ? colors.green : colors.orange);
+    svg.appendChild(node);
+    return node;
+  });
+
+  const points = paths.map(p => {
+    const c = p.cloneNode();
+    c.setAttribute("d", c.getAttribute("d").split("z")[0] + "z");
+    return getPoints(c);
+  });
+  const mins = points.map(ps => Math.min(...ps.map(p => p.x)));
+  const maxs = points.map(ps => Math.max(...ps.map(p => p.x)));
+  const widths = mins.map((min, i) => maxs[i] - min);
+
+  let dx = 1;
+  const offsets = [dx - mins[0]];
+  widths.slice(0, -1).forEach((w, i) => {
+    dx += w + options.character_distance + kerning(characters[i], characters[i + 1]);
+    offsets[i + 1] = dx - mins[i + 1];
+  });
+  offsets.forEach((offset, i) => {
+    paths[i].setAttribute("transform", `translate(${offset}, 0)`);
+    points[i].forEach(p => p.x += offset);
+  });
+  const width = dx + last(widths) + 2;
+  svg.setAttribute("viewBox", `0 -0.5 ${width} 8`);
+
+  points.forEach(ps => {
+    ps.forEach(p => svg.appendChild(createCircle(0.1, p.x, p.y)));
+  });
+
+  points.slice(1,-1).forEach(ps => {
+    const tops = topElements(ps, options.top_tolerance);
+    tops.forEach(p => svg.appendChild(createCircle(0.06, p.x, p.y, "yellow")));
+  });
+
+  const bottoms = bottomElements(points[0], options.bottom_tolerance);
+  bottoms.forEach(p => svg.appendChild(createCircle(0.06, p.x, p.y, "yellow")));
+
+  const rights = rightElements(last(points), options.right_tolerance);
+  rights.forEach(p => svg.appendChild(createCircle(0.06, p.x, p.y, "yellow")));
+}
+
+
+
+function generate6(svg, text) {
+  svg.innerHTML = "";
+  const background = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  svg.appendChild(background);
+
+  const characters = text.toUpperCase().split("").filter(c => alphabet.includes(c));
+
+  const paths = characters.map((c, i) => {
+    const node = createPath(font[alphabet.indexOf(c)]);
+    node.setAttribute("fill", (i % 2 === 0) ? colors.green : colors.orange);
+    svg.appendChild(node);
+    return node;
+  });
+
+  const points = paths.map(p => {
+    const c = p.cloneNode();
+    c.setAttribute("d", c.getAttribute("d").split("z")[0] + "z");
+    return getPoints(c);
+  });
+  const mins = points.map(ps => Math.min(...ps.map(p => p.x)));
+  const maxs = points.map(ps => Math.max(...ps.map(p => p.x)));
+  const widths = mins.map((min, i) => maxs[i] - min);
+
+  let dx = 1;
+  const offsets = [dx - mins[0]];
+  widths.slice(0, -1).forEach((w, i) => {
+    dx += w + options.character_distance + kerning(characters[i], characters[i + 1]);
+    offsets[i + 1] = dx - mins[i + 1];
+  });
+  offsets.forEach((offset, i) => {
+    paths[i].setAttribute("transform", `translate(${offset}, 0)`);
+    points[i].forEach(p => p.x += offset);
+  });
+  const width = dx + last(widths) + 2;
+  svg.setAttribute("viewBox", `0 -0.5 ${width} 8`);
+
+  points.forEach(ps => {
+    ps.forEach(p => svg.appendChild(createCircle(0.1, p.x, p.y)));
+  });
+
+  points.slice(1,-1).forEach(ps => {
+    const tops = topElements(ps, options.top_tolerance);
+    tops.forEach(p => svg.appendChild(createCircle(0.06, p.x, p.y, "yellow")));
+    const top = randomElement(tops);
+    background.appendChild(createIcon(top, topPath));
+  });
+
+  const bottoms = bottomElements(points[0], options.bottom_tolerance);
+  bottoms.forEach(p => svg.appendChild(createCircle(0.06, p.x, p.y, "yellow")));
+  const bottom = randomElement(bottoms);
+  background.appendChild(createIcon(bottom, groundPath));
+
+  const rights = rightElements(last(points), options.right_tolerance);
+  rights.forEach(p => svg.appendChild(createCircle(0.06, p.x, p.y, "yellow")));
+  const right = randomElement(rights);
+  background.appendChild(createIcon(right, rightPath));
+}
+
+
+
+function generate7(svg, text) {
+  svg.innerHTML = "";
+  const background = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  svg.appendChild(background);
+
+  const characters = text.toUpperCase().split("").filter(c => alphabet.includes(c));
+
+  const paths = characters.map((c, i) => {
+    const node = createPath(font[alphabet.indexOf(c)]);
+    node.setAttribute("fill", (i % 2 === 0) ? colors.green : colors.orange);
+    svg.appendChild(node);
+    return node;
+  });
+
+  const points = paths.map(p => {
+    const c = p.cloneNode();
+    c.setAttribute("d", c.getAttribute("d").split("z")[0] + "z");
+    return getPoints(c);
+  });
+  const mins = points.map(ps => Math.min(...ps.map(p => p.x)));
+  const maxs = points.map(ps => Math.max(...ps.map(p => p.x)));
+  const widths = mins.map((min, i) => maxs[i] - min);
+
+  let dx = 1;
+  const offsets = [dx - mins[0]];
+  widths.slice(0, -1).forEach((w, i) => {
+    dx += w + options.character_distance + kerning(characters[i], characters[i + 1]);
+    offsets[i + 1] = dx - mins[i + 1];
+  });
+  offsets.forEach((offset, i) => {
+    paths[i].setAttribute("transform", `translate(${offset}, 0)`);
+    points[i].forEach(p => p.x += offset);
+  });
+  const width = dx + last(widths) + 2;
+  svg.setAttribute("viewBox", `0 -0.5 ${width} 8`);
+
+  points.slice(0, 1).forEach((leftPoints, i) => {
+    const rightPoints = points[i + 1];
+    const lefts = verticalRangePoints(leftPoints, options.vertical_position, options.vertical_tolerance);
+    lefts.forEach(p => svg.appendChild(createCircle(0.1, p.x, p.y)));
+  });
+}
+
+
+
+function generate8(svg, text) {
+  svg.innerHTML = "";
+  const background = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  svg.appendChild(background);
+
+  const characters = text.toUpperCase().split("").filter(c => alphabet.includes(c));
+
+  const paths = characters.map((c, i) => {
+    const node = createPath(font[alphabet.indexOf(c)]);
+    node.setAttribute("fill", (i % 2 === 0) ? colors.green : colors.orange);
+    svg.appendChild(node);
+    return node;
+  });
+
+  const points = paths.map(p => {
+    const c = p.cloneNode();
+    c.setAttribute("d", c.getAttribute("d").split("z")[0] + "z");
+    return getPoints(c);
+  });
+  const mins = points.map(ps => Math.min(...ps.map(p => p.x)));
+  const maxs = points.map(ps => Math.max(...ps.map(p => p.x)));
+  const widths = mins.map((min, i) => maxs[i] - min);
+
+  let dx = 1;
+  const offsets = [dx - mins[0]];
+  widths.slice(0, -1).forEach((w, i) => {
+    dx += w + options.character_distance + kerning(characters[i], characters[i + 1]);
+    offsets[i + 1] = dx - mins[i + 1];
+  });
+  offsets.forEach((offset, i) => {
+    paths[i].setAttribute("transform", `translate(${offset}, 0)`);
+    points[i].forEach(p => p.x += offset);
+  });
+  const width = dx + last(widths) + 2;
+  svg.setAttribute("viewBox", `0 -0.5 ${width} 8`);
+
+  points.slice(0, 1).forEach((leftPoints, i) => {
+    const rightPoints = points[i + 1];
+    const lefts = verticalRangePoints(leftPoints, options.vertical_position, options.vertical_tolerance);
+    lefts.forEach(p => svg.appendChild(createCircle(0.1, p.x, p.y)));
+    const lefts2 = rightElements(lefts, options.resistor_tolerance);
+    lefts2.forEach(p => svg.appendChild(createCircle(0.08, p.x, p.y, "yellow")));
+    const left = randomElement(lefts2);
+    svg.appendChild(createCircle(0.08, left.x, left.y, "lime"));
+    const rights = rightPoints.filter(p => Math.abs(p.y - left.y) <= options.resistor_tolerance);
+    rights.forEach(p => svg.appendChild(createCircle(0.1, p.x, p.y)));
+  });
+}
+
+
+
+function generate9(svg, text) {
+  svg.innerHTML = "";
+  const background = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  svg.appendChild(background);
+
+  const characters = text.toUpperCase().split("").filter(c => alphabet.includes(c));
+
+  const paths = characters.map((c, i) => {
+    const node = createPath(font[alphabet.indexOf(c)]);
+    node.setAttribute("fill", (i % 2 === 0) ? colors.green : colors.orange);
+    svg.appendChild(node);
+    return node;
+  });
+
+  const points = paths.map(p => {
+    const c = p.cloneNode();
+    c.setAttribute("d", c.getAttribute("d").split("z")[0] + "z");
+    return getPoints(c);
+  });
+  const mins = points.map(ps => Math.min(...ps.map(p => p.x)));
+  const maxs = points.map(ps => Math.max(...ps.map(p => p.x)));
+  const widths = mins.map((min, i) => maxs[i] - min);
+
+  let dx = 1;
+  const offsets = [dx - mins[0]];
+  widths.slice(0, -1).forEach((w, i) => {
+    dx += w + options.character_distance + kerning(characters[i], characters[i + 1]);
+    offsets[i + 1] = dx - mins[i + 1];
+  });
+  offsets.forEach((offset, i) => {
+    paths[i].setAttribute("transform", `translate(${offset}, 0)`);
+    points[i].forEach(p => p.x += offset);
+  });
+  const width = dx + last(widths) + 2;
+  svg.setAttribute("viewBox", `0 -0.5 ${width} 8`);
+
+  points.slice(0, 1).forEach((leftPoints, i) => {
+    const rightPoints = points[i + 1];
+    const lefts = verticalRangePoints(leftPoints, options.vertical_position, options.vertical_tolerance);
+    lefts.forEach(p => svg.appendChild(createCircle(0.1, p.x, p.y)));
+    const lefts2 = rightElements(lefts, options.resistor_tolerance);
+    lefts2.forEach(p => svg.appendChild(createCircle(0.08, p.x, p.y, "yellow")));
+    const left = randomElement(lefts2);
+    const rights = rightPoints.filter(p => Math.abs(p.y - left.y) <= options.resistor_tolerance);
+    rights.forEach(p => svg.appendChild(createCircle(0.1, p.x, p.y)));
+    const rights2 = leftElements(rights, options.resistor_tolerance);
+    rights2.forEach(p => svg.appendChild(createCircle(0.08, p.x, p.y, "yellow")));
+    const right = randomElement(rights2);
+    background.append(createResistor(left, right));
   });
 }

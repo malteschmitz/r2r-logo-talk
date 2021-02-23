@@ -18,27 +18,31 @@
 <section>
   <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg"></svg>
   <script>
-    generate(svg, "r2r");
-    svg.onclick = () => generate(svg, "r2r");
+    setInterval(() => generate(svg, "r2r"), 1000);
   </script>
 </section>
 <section>
   <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg2"></svg>
+  <script>
+    generate2(svg2, "r2r");
+  </script>
   <pre><code class="javascript" data-trim>
     const len = path.getTotalLength();
     const point = path.getPointAtLength(len * pos);
     c.setAttribute("cx", point.x);
     c.setAttribute("cy", point.y);
   </code></pre>
-  <script>
-    generate2(svg2, "r2r");
-  </script>
 </section>
 <section>
   <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg3"></svg>
   <script>
     generate3(svg3, "r2r");
   </script>
+  <pre><code class="javascript" data-trim>
+    const len = node.getTotalLength();
+    const nodes = range(100).map(i =>
+      node.getPointAtLength(len * i / 100));
+  </code></pre>
 </section>
 <section>
   <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg4"></svg>
@@ -46,12 +50,75 @@
     generate4(svg4, "r2r");
   </script>
   <pre><code class="javascript" data-trim>
-    const outlines = paths.map(p => {
-      const c = p.cloneNode();
-      c.setAttribute("d", c.getAttribute("d").split("z")[0] + "z");
-      return c;
-    });
+    const c = p.cloneNode();
+    c.setAttribute("d", c.getAttribute("d").split("z")[0] + "z");
   </code></pre>
+</section>
+<section>
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg5"></svg>
+  <script>
+    generate5(svg5, "r2r");
+  </script>
+  <pre><code class="javascript" data-trim>
+    function bottomElements(points, tolerance) {
+      const max = Math.max(...points.map(p => p.y));
+      return points.filter(p => Math.abs(p.y - max) <= tolerance);
+    }
+  </code></pre>
+</section>
+<section>
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg6"></svg>
+  <script>
+    setInterval(() => generate6(svg6, "r2r"), 1000);
+  </script>
+  <pre><code class="javascript" data-trim>
+    function randomElement(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+  </code></pre>
+</section>
+<section>
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg7"></svg>
+  <script>
+    generate7(svg7, "r2r");
+  </script>
+  <pre><code class="javascript" data-trim>
+    points.sort((a,b) => a.y - b.y);
+    const min = points[0].y;
+    const max = last(points).y;
+    const pos = min + (max - min) / 2;
+    const middle = points.filter(p => abs(p.y - pos) <= tolerance);
+  </code></pre>
+</section>
+<section>
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg8"></svg>
+  <script>
+    setInterval(() => generate8(svg8, "r2r"), 1000);
+  </script>
+  <pre><code class="javascript" data-trim>
+    const left = randomElement(rightElements(middle));
+    nextPoints.filter(p => Math.abs(p.y - left.y) <= tolerance);
+  </code></pre>
+</section>
+<section>
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg9"></svg>
+  <script>
+    setInterval(() => generate9(svg9, "r2r"), 1000);
+  </script>
+  <pre><code class="javascript" data-trim>
+    const node = document.createElement("path");
+    node.setAttribute("d", "m20.4-.771c-.695.185-1.45...");
+    node.setAttribute("transform", `translate(${a.x},${a.y})
+                                    scale(${distance(a,b) / 20})
+                                    rotate(${angle(a, b)})`);
+  </code></pre>
+</section>
+<section>
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg10"></svg>
+  <script>
+    setInterval(() => generate(svg10, "r2r"), 1000);
+  </script>
+  <p><a href="https://malteschmitz.github.io/r2r/"><code>https://malteschmitz.github.io/r2r/</code></a></p>
 </section>
 </div>
 </div>
