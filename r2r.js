@@ -325,11 +325,7 @@ function generate3(svg, text) {
     return node;
   });
 
-  const points = paths.map(p => {
-    const c = p.cloneNode();
-    c.setAttribute("d", c.getAttribute("d").split("z")[0] + "z");
-    return getPoints(c);
-  });
+  const points = paths.map(p => getPoints(p));
   const mins = points.map(ps => Math.min(...ps.map(p => p.x)));
   const maxs = points.map(ps => Math.max(...ps.map(p => p.x)));
   const widths = mins.map((min, i) => maxs[i] - min);
@@ -366,19 +362,13 @@ function generate4(svg, text) {
 
   const paths = characters.map((c, i) => {
     const node = createPath(font[alphabet.indexOf(c)]);
+    node.setAttribute("d", node.getAttribute("d").split("z")[0] + "z");
+    node.setAttribute("fill", (i % 2 === 0) ? colors.green : colors.orange);
+    svg.appendChild(node);
     return node;
   });
-
-  const outlines = paths.map(p => {
-    const c = p.cloneNode();
-    c.setAttribute("d", c.getAttribute("d").split("z")[0] + "z");
-    svg.appendChild(c);
-    return c;
-  });
-
-  const points = outlines.map(o => {
-    return getPoints(o);
-  });
+    
+  const points = paths.map(p => getPoints(p));
   const mins = points.map(ps => Math.min(...ps.map(p => p.x)));
   const maxs = points.map(ps => Math.max(...ps.map(p => p.x)));
   const widths = mins.map((min, i) => maxs[i] - min);
@@ -390,7 +380,7 @@ function generate4(svg, text) {
     offsets[i + 1] = dx - mins[i + 1];
   });
   offsets.forEach((offset, i) => {
-    outlines[i].setAttribute("transform", `translate(${offset}, 0)`);
+    paths[i].setAttribute("transform", `translate(${offset}, 0)`);
     points[i].forEach(p => p.x += offset);
   });
   const width = dx + last(widths) + 2;
