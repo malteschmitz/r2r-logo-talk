@@ -16,9 +16,17 @@
 <div class="reveal">
 <div class="slides">
 <section>
+  <img src="r2r-logo.svg">
+</section>
+<section>
   <svg xmlns="http://www.w3.org/2000/svg" width="100%" id="svg"></svg>
   <script>
-    setInterval(() => generate(svg, "r2r"), 1000);
+    const words = ["5 Minuten", "Podcastperlen", "Chaotikum", "Infrastruktur", "Nbsp", "Nobreakspace", "Malte", "Magrathea", "Chaos", "Sensornetzwerk", "Myonenschauer", "virtuell", "online", "Freitalk", "Plenum", "Workshop"];
+    let i = 0;
+    setInterval(() => {
+      i = (i + 1) % (words.length * 4);
+      generate(svg, words[~~(i / 4)]);
+    }, 1000);
   </script>
 </section>
 <section>
